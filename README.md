@@ -15,5 +15,4 @@ For lens undistortion:
   4. Plug into "master_script.py"
 
 
-Test 3
-
+4th try
