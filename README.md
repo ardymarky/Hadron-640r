@@ -15,4 +15,13 @@ For lens undistortion:
   4. Plug into "master_script.py"
 
 
-5th try
+Update GPSD:
+
+	sudo apt update
+	sudo apt install -y scons libncurses-dev python-dev pps-tools git-core asciidoctor python3-matplotlib build-essential manpages-dev pkg-config python3-distutils
+	wget http://download.savannah.gnu.org/releases/gpsd/gpsd-3.23.1.tar.gz
+	tar -xzf gpsd-3.23.1.tar.gz
+	cd gpsd-3.23.1
+	sudo scons
+	sudo scons install
+	gpsd -V
