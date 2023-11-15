@@ -1,4 +1,5 @@
 # Hadron-640r
+
 Object detection and 3d tracking using thermal cameras and python3
 
 For recording calibration photos:
@@ -15,13 +16,8 @@ For lens undistortion:
   4. Plug into "master_script.py"
 
 
-Update GPSD:
+Timesync:
 
-	sudo apt update
-	sudo apt install -y scons libncurses-dev python-dev pps-tools git-core asciidoctor python3-matplotlib build-essential manpages-dev pkg-config python3-distutils
-	wget http://download.savannah.gnu.org/releases/gpsd/gpsd-3.23.1.tar.gz
-	tar -xzf gpsd-3.23.1.tar.gz
-	cd gpsd-3.23.1
-	sudo scons
-	sudo scons install
-	gpsd -V
+  1. Plug in GPS to Avermedia board
+  2. Wait 30 seconds
+  3. Run "python3.8 timesync.py
