@@ -20,4 +20,4 @@ Timesync:
 
   1. Plug in GPS to Avermedia board
   2. Wait 30 seconds
-  3. Run "python3.8 timesync.py
+  3. Run "sudo python3.8 timesync.py"
