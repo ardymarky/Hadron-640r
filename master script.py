@@ -29,7 +29,7 @@ convertedMaskTemp = (255)/(maxTemp-minTemp) * (maskMinTemp-minTemp)
 
 # CSV formatting
 header = ['time', 'object no.', 'azimuth', 'bearing']
-f = open('test.csv', 'w', encoding='UTF8')
+f = open('hadron_data.csv', 'w', encoding='UTF8')
 writer = csv.writer(f)
 writer.writerow(header)
 
@@ -128,17 +128,19 @@ while True: # record indefinitely (until user presses q)
 
     # If objects detected and 'r' was pressed
     if len(keypoints) > 0 and record:
+        # Get current time
         curr_time = time.time()
         if (int(curr_time) - int(prev_time)) >= 1:
+            # If 1 second has elapsed since last output
             for x in range(len(keypoints)):
                 # Get bearing and azimuth angles
                 width, height = keypoints[x].pt
                 angleX = (width - centerXPixel)*degreePerPixel
                 angleY = (height - centerYPixel)*degreePerPixel
                 # Write data to CSV
-                d=datetime.datetime.now() # Posix time
                 row = [int(curr_time), x+1, angleX, angleY]
                 writer.writerow(row)
+            # Reset current time
             prev_time = time.time()
 
     # Display frame in window
