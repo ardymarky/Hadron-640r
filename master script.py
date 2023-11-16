@@ -79,6 +79,9 @@ cv2.imshow('thermal tracker', static_mask)
 cv2.setMouseCallback('thermal tracker', mouse_events)
 
 while True: # record indefinitely (until user presses q)
+
+    start_time=datetime.datetime.now() # Posix time
+
     # Get frame from camera
     (grabbed, thermal_frame) = cap.read()
     key = cv2.waitKey(1)
@@ -125,15 +128,18 @@ while True: # record indefinitely (until user presses q)
 
     # If objects detected and 'r' was pressed
     if len(keypoints) > 0 and record:
-        for x in range(len(keypoints)):
-            # Get bearing and azimuth angles
-            width, height = keypoints[x].pt
-            angleX = (width - centerXPixel)*degreePerPixel
-            angleY = (height - centerYPixel)*degreePerPixel
-            d=datetime.datetime.now() # Posix time
-            # Write data to CSV
-            row = [time.mktime(d.timetuple()), x+1, angleX, angleY]
-            writer.writerow(row)
+        curr_time = time.time()
+        if (int(curr_time) - int(prev_time)) >= 1:
+            for x in range(len(keypoints)):
+                # Get bearing and azimuth angles
+                width, height = keypoints[x].pt
+                angleX = (width - centerXPixel)*degreePerPixel
+                angleY = (height - centerYPixel)*degreePerPixel
+                # Write data to CSV
+                d=datetime.datetime.now() # Posix time
+                row = [int(curr_time), x+1, angleX, angleY]
+                writer.writerow(row)
+            prev_time = time.time()
 
     # Display frame in window
     cv2.imshow("thermal tracker", thermal_frame)
@@ -146,7 +152,9 @@ while True: # record indefinitely (until user presses q)
     # Begin or stop recording with 'r'
     if key == ord('r'):
         record = not record
-        if record: print("Recording...")
+        if record: 
+            print("Recording...")
+            prev_time = time.time()
         else: print("Stopped Recording")
     
 # Close all files and windows
