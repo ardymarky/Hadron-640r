@@ -14,10 +14,10 @@ import time
 x_mouse = 0
 y_mouse = 0
 record = False
-
+frame_rate = 12
 minTemp = 44 # All values in Farenheit
 maxTemp = 134
-maskMinTemp =100 
+maskMinTemp = 100 
 centerXPixel = 320
 centerYPixel = 256
 degreePerPixel = 0.05
@@ -28,7 +28,7 @@ convertedMaxTemp = (maxTemp + 459.67) * 100 / 9 * 5
 convertedMaskTemp = (255)/(maxTemp-minTemp) * (maskMinTemp-minTemp) 
 
 # CSV formatting
-header = ['time', 'object no.', 'azimuth', 'bearing']
+header = ['time', 'object no.', 'azimuth', 'bearing', 'loop time']
 f = open('hadron_data.csv', 'w', encoding='UTF8')
 writer = csv.writer(f)
 writer.writerow(header)
@@ -62,7 +62,6 @@ def thermal_calibration(frame):
     dist = np.array([6.28685479e-02, -3.68503422e+00, -1.55064164e-03, -1.41925924e-03, 	             1.84969914e+01])
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
     frame = cv2.undistort(frame, mtx, dist, None, newcameramtx)
-
     return frame
 
 # Set capture parameters
@@ -71,6 +70,7 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('Y','1','6',' '))
 cap.set(cv2.CAP_PROP_CONVERT_RGB, 0)
+cap.set(cv2.CAP_PROP_FPS, frame_rate)
 
 # Static Mask
 grabbed, static_mask = cap.read()
@@ -78,8 +78,13 @@ static_mask = thermal_calibration(static_mask)
 cv2.imshow('thermal tracker', static_mask)
 cv2.setMouseCallback('thermal tracker', mouse_events)
 
+# Find Current Frame Count and Time
+frame_count = int((time.time() % 1) / (1./frame_rate))
+prev_time = time.time()
+
 while True: # record indefinitely (until user presses q)
 
+    frame_count = (frame_count + 1) % frame_rate
     start_time=datetime.datetime.now() # Posix time
 
     # Get frame from camera
@@ -130,18 +135,26 @@ while True: # record indefinitely (until user presses q)
     if len(keypoints) > 0 and record:
         # Get current time
         curr_time = time.time()
-        if (int(curr_time) - int(prev_time)) >= 1:
-            # If 1 second has elapsed since last output
-            for x in range(len(keypoints)):
-                # Get bearing and azimuth angles
-                width, height = keypoints[x].pt
-                angleX = (width - centerXPixel)*degreePerPixel
-                angleY = (height - centerYPixel)*degreePerPixel
-                # Write data to CSV
-                row = [int(curr_time), x+1, angleX, angleY]
-                writer.writerow(row)
-            # Reset current time
-            prev_time = time.time()
+        #if (int(curr_time) - int(prev_time)) >= 1:
+            
+        # If 1 second has elapsed since last output
+        for x in range(len(keypoints)):
+            # Get bearing and azimuth angles
+            width, height = keypoints[x].pt
+            angleX = (width - centerXPixel)*degreePerPixel
+            angleY = (height - centerYPixel)*degreePerPixel
+            # Write data to CSV
+            row = [curr_time, x+1, angleX, angleY, curr_time-prev_time, frame_count]
+            writer.writerow(row)
+
+    # 12 FPS Limiter
+    temp_time = time.time()
+    if frame_count == frame_rate - 1:
+        time.sleep(int(time.time()+1) - time.time())
+    elif temp_time - prev_time  < 1./frame_rate:
+        time.sleep(1./frame_rate - temp_time + prev_time)
+    # Log current time
+    prev_time = time.time()
 
     # Display frame in window
     cv2.imshow("thermal tracker", thermal_frame)
@@ -156,7 +169,6 @@ while True: # record indefinitely (until user presses q)
         record = not record
         if record: 
             print("Recording...")
-            prev_time = time.time()
         else: print("Stopped Recording")
     
 # Close all files and windows
