@@ -28,7 +28,7 @@ convertedMaxTemp = (maxTemp + 459.67) * 100 / 9 * 5
 convertedMaskTemp = (255)/(maxTemp-minTemp) * (maskMinTemp-minTemp) 
 
 # CSV formatting
-header = ['time', 'object no.', 'azimuth', 'bearing', 'loop time']
+header = ['time', 'object no.', 'azimuth', 'bearing', 'loop time', 'frame']
 f = open('hadron_data.csv', 'w', encoding='UTF8')
 writer = csv.writer(f)
 writer.writerow(header)
