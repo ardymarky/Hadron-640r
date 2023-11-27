@@ -1,6 +1,6 @@
 # Hadron-640r
 
-Object detection and 3d tracking using thermal cameras and python3
+Object detection and 3d tracking using thermal cameras and OpenCV
 
 Proces 1 (Timesync):
 
