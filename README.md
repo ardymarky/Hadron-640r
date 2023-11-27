@@ -21,3 +21,7 @@ Timesync:
   1. Plug in GPS to Avermedia board
   2. Wait 30 seconds
   3. Run "sudo python3.8 timesync.py"
+
+Beam distance is 62 inches
+Bracker piece is 55mm 
+Distance between two cameras is 1.5198 meters or 1519.8 millimeters
