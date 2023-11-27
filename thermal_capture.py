@@ -28,9 +28,6 @@ while True:#record indefinitely (until user presses q), replace with "while True
     (grabbed, thermal_frame) = cap.read()
 
 #Normalize to gray8 0-255 range)
-    thermal_frame = cv2.flip(thermal_frame, 0)
-    thermal_frame = cv2.flip(thermal_frame, 1)
-
     minTemp = 50
     maxTemp = 110
     #Floor temp is roughy 68.5

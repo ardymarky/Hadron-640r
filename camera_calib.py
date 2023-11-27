@@ -20,7 +20,7 @@ imgpoints = []
 prev_img_shape = None
  
 # Extracting path of individual image stored in a given directory
-images = glob.glob('./Pictures/*.png')
+images = glob.glob('*.png')
 for fname in images:
     CHECKERBOARD = (7,5)
     objp = np.zeros((1, CHECKERBOARD[0] * CHECKERBOARD[1], 3), np.float32)
@@ -59,8 +59,9 @@ for fname in images:
             # Draw and display the corners
         img = cv2.drawChessboardCorners(img, CHECKERBOARD, corners2, ret)
         print(CHECKERBOARD)     
-    #cv2.imshow('img',img)
+    #cv2.imshow(fname,img)
     #cv2.waitKey(0)
+    #cv2.destroyAllWindows()
  
 cv2.destroyAllWindows()
  
@@ -84,7 +85,7 @@ for i in range(len(objpoints)):
     imgpoints2, _ = cv2.projectPoints(objpoints[i], rvecs[i], tvecs[i], mtx, dist)
     error = cv2.norm(imgpoints[i], imgpoints2, cv2.NORM_L2)/len(imgpoints2)
     mean_error += error
-    print("Error: {}".format(error))
+    print("Error: {}".format(error), images[i])
 print("total error: {}".format(mean_error/len(objpoints)))
 
 
