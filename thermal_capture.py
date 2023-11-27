@@ -21,6 +21,7 @@ cap.set(cv2.CAP_PROP_CONVERT_RGB, 0)
 grabbed, frame_thermal = cap.read()
 cv2.imshow('thermal tracker', frame_thermal)
 cv2.setMouseCallback('thermal tracker', mouse_events)
+print("Press space to capture image")
 
 while True:#record indefinitely (until user presses q), replace with "while True"
 
