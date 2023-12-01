@@ -9,6 +9,7 @@ from pyubx2 import UBXReader
 import datetime
 import time
 import os
+import csv
 
 # Default port and baud
 ins_port = '/dev/ttyUSB0'
@@ -30,11 +31,8 @@ stream.reset_input_buffer()
 # Get GPS data
 ubr = UBXReader(stream)
 (raw_data, parsed_data) = ubr.read()
-
 # Run until GPStime is initialized
 while not time_init:
-    time.sleep (0.001) # Limit how fast the loop runs
-
     # Only sync if data is GPS Time
     if parsed_data.identity == "NAV-TIMEGPS":
         print("connected!")
@@ -45,9 +43,32 @@ while not time_init:
         print ("Time synced to " + datetime.datetime.now().strftime("%m/%d/%Y %H:%M:%S UTC"))
         time_init = True
 
-print("Success!")
-                    
+    time.sleep (0.001) # Limit how fast the loop runs
+    (raw_data, parsed_data) = ubr.read()
 
+
+stream.reset_input_buffer()
+ubr = UBXReader(stream)
+(raw_data, parsed_data) = ubr.read()
+
+while not fix_stat:
+    if parsed_data.identity == "NAV-PVT":
+        print("found location!")
+       
+        cur_position = [parsed_data.lon, parsed_data.lat, parsed_data.height, parsed_data.hMSL]
+        f = open('hadron_data.csv', 'w', encoding='UTF8')
+        writer = csv.writer(f)
+        writer.writerow(["Longitude", "Latitude", "Height", "MSL"])
+        writer.writerow(cur_position)
+        writer.writerow([])
+        fix_stat = True
+        print(cur_position)
+        if parsed_data.lon == 0:
+            print("gps not fixed, wait and run again")
+    (raw_data, parsed_data) = ubr.read()
+
+print("Success!")
+f.close()
     
     
 

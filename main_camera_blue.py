@@ -28,8 +28,8 @@ convertedMaxTemp = (maxTemp + 459.67) * 100 / 9 * 5
 convertedMaskTemp = (255)/(maxTemp-minTemp) * (maskMinTemp-minTemp) 
 
 # CSV formatting
-header = ['time', 'object no.', 'azimuth', 'bearing', 'loop time', 'frame']
-f = open('hadron_data.csv', 'w', encoding='UTF8')
+header = ['time', 'loop time', 'object no.', 'azimuth', 'bearing']
+f = open('hadron_data.csv', 'a', encoding='UTF8')
 writer = csv.writer(f)
 writer.writerow(header)
 
@@ -94,14 +94,14 @@ while True: # record indefinitely (until user presses q)
     # Get temperature from mouse pointer
     temperature_pointer = thermal_frame[y_mouse, x_mouse]
     temperature_pointer = temperature_pointer / 100 * 9  / 5 - 459.67
-    
+    # Normalize frame
+    thermal_frame = thermal_calibration(thermal_frame)
     # Recalibrate static mask with 'c'
     if key == ord('c'):
         static_mask = thermal_frame;
         print("Got New Static Mask")
 
-    # Normalize frame
-    thermal_frame = thermal_calibration(thermal_frame)
+
 
     # Refine Static and Thermal Mask
     new_static_mask = thermal_frame- static_mask + 5
@@ -131,21 +131,21 @@ while True: # record indefinitely (until user presses q)
     cv2.putText(thermal_frame, "Temperature: {0:.1f} F".format(temperature_pointer), (30,30), cv2.FONT_HERSHEY_PLAIN, 1.5, (255,255,255), 2)
     cv2.putText(thermal_frame, "Obstacles detected over {0:.1f} F : {1:}".format(maskMinTemp, len(keypoints)), (30,60), cv2.FONT_HERSHEY_PLAIN, 1.5, (255,255,255), 2)
 
-    # If objects detected and 'r' was pressed
-    if len(keypoints) > 0 and record:
-        # Get current time
+    if record:
         curr_time = time.time()
-        #if (int(curr_time) - int(prev_time)) >= 1:
-            
-        # If 1 second has elapsed since last output
-        for x in range(len(keypoints)):
-            # Get bearing and azimuth angles
-            width, height = keypoints[x].pt
-            angleX = (width - centerXPixel)*degreePerPixel
-            angleY = (height - centerYPixel)*degreePerPixel
-            # Write data to CSV
-            row = [curr_time, x+1, angleX, angleY, curr_time-prev_time, frame_count]
-            writer.writerow(row)
+        row = [curr_time, curr_time - prev_time]
+        # If objects detected and 'r' was pressed
+        if len(keypoints) > 0:
+            # Get current time
+            # If 1 second has elapsed since last output
+            for x in range(len(keypoints)):
+                # Get bearing and azimuth angles
+                width, height = keypoints[x].pt
+                angleX = (width - centerXPixel)*degreePerPixel
+                angleY = -(height - centerYPixel)*degreePerPixel
+                # Write data to CSV
+                row.extend([x+1, angleX, angleY])
+        writer.writerow(row)
 
     # 12 FPS Limiter
     temp_time = time.time()
