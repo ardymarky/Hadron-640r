@@ -38,6 +38,7 @@ To correct for lens distortion:
 Beam distance is 62 inches
 Bracket piece is 55mm 
 Distance between two cameras is 1.5198 meters or 1519.8 millimeters
+The lens is 76mm along the beam and 16mmn forward of the gnss receiver
 
 Camera 1 (Red power cable):
     mtx = np.matrix([[1.15337497e+03, 0, 3.18136149e+02], 
