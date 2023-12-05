@@ -11,10 +11,8 @@ import datetime
 import time
 
 # Init Default Variables
-x_mouse = 0
-y_mouse = 0
 record = False
-frame_rate = 12
+frame_rate = 8
 minTemp = 44 # All values in Farenheit
 maxTemp = 134
 maskMinTemp = 100 
@@ -33,15 +31,9 @@ f = open('hadron_data.csv', 'a', encoding='UTF8')
 writer = csv.writer(f)
 writer.writerow(header)
 
-# Mouse Pixel Position
-def mouse_events(event, x, y, flags, param):
-    if event == cv2.EVENT_MOUSEMOVE:
-    
-        global x_mouse
-        global y_mouse
-
-    x_mouse = x
-    y_mouse = y
+# Video Output
+raw = cv2.VideoWriter('raw.avi', cv2.VideoWriter_fourcc(*'MJPG'), frame_rate, (640, 512))
+final = cv2.VideoWriter('final.avi', cv2.VideoWriter_fourcc(*'MJPG'), frame_rate, (640, 512))
 
 # Normalize Frame to gray8 0-255 range
 def thermal_calibration(frame):
@@ -76,7 +68,6 @@ cap.set(cv2.CAP_PROP_FPS, frame_rate)
 grabbed, static_mask = cap.read()
 static_mask = thermal_calibration(static_mask)
 cv2.imshow('thermal tracker', static_mask)
-cv2.setMouseCallback('thermal tracker', mouse_events)
 
 # Find Current Frame Count and Time
 frame_count = int((time.time() % 1) / (1./frame_rate))
@@ -85,15 +76,12 @@ prev_time = time.time()
 while True: # record indefinitely (until user presses q)
 
     frame_count = (frame_count + 1) % frame_rate
-    start_time=datetime.datetime.now() # Posix time
+    start_time=time.time() # Posix time
 
     # Get frame from camera
     (grabbed, thermal_frame) = cap.read()
     key = cv2.waitKey(1)
 
-    # Get temperature from mouse pointer
-    temperature_pointer = thermal_frame[y_mouse, x_mouse]
-    temperature_pointer = temperature_pointer / 100 * 9  / 5 - 459.67
     # Normalize frame
     thermal_frame = thermal_calibration(thermal_frame)
     # Recalibrate static mask with 'c'
@@ -124,16 +112,20 @@ while True: # record indefinitely (until user presses q)
     # Combine Masks and detect objects
     mask3 = (temp_mask * new_static_mask) * 255
     keypoints = detector.detect(mask3)
+    endTime = time.time()
 
     # Graphical stuff
-    thermal_frame = cv2.applyColorMap(thermal_frame, cv2.COLORMAP_JET)    
-    thermal_frame = cv2.drawKeypoints(thermal_frame, keypoints, 0, (150,150,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
-    cv2.putText(thermal_frame, "Temperature: {0:.1f} F".format(temperature_pointer), (30,30), cv2.FONT_HERSHEY_PLAIN, 1.5, (255,255,255), 2)
-    cv2.putText(thermal_frame, "Obstacles detected over {0:.1f} F : {1:}".format(maskMinTemp, len(keypoints)), (30,60), cv2.FONT_HERSHEY_PLAIN, 1.5, (255,255,255), 2)
+    thermal_frame = cv2.applyColorMap(thermal_frame, cv2.COLORMAP_JET)
+    cv2.putText(thermal_frame, "Time: {0:.3f}".format(time.time()), (20,30), cv2.FONT_HERSHEY_PLAIN, 1.5, (255,255,255), 2)
+    if record:
+       raw.write(thermal_frame)
+    cv2.putText(thermal_frame, "Obstacles detected over {0:.1f} F : {1:}".format(maskMinTemp, len(keypoints)), (20,60), cv2.FONT_HERSHEY_PLAIN, 1.5, (255,255,255), 2)
+    thermal_frame = cv2.drawKeypoints(thermal_frame, keypoints, 0, (0,0,0), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     if record:
+        final.write(thermal_frame)
         curr_time = time.time()
-        row = [curr_time, curr_time - prev_time]
+        row = [curr_time, endTime - start_time]
         # If objects detected and 'r' was pressed
         if len(keypoints) > 0:
             # Get current time
@@ -147,7 +139,7 @@ while True: # record indefinitely (until user presses q)
                 row.extend([x+1, angleX, angleY])
         writer.writerow(row)
 
-    # 12 FPS Limiter
+    # FPS Limiter
     temp_time = time.time()
     if frame_count == frame_rate - 1:
         time.sleep(int(time.time()+1) - time.time())
@@ -174,3 +166,5 @@ while True: # record indefinitely (until user presses q)
 # Close all files and windows
 cv2.destroyAllWindows()
 f.close()
+raw.release()
+final.release()
