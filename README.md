@@ -33,6 +33,14 @@ To correct for lens distortion:
   3. Record outputted matrix and dist arrays
   4. Plug matrixs into "main_camera_*.py"
 
+## LAN Network ##
+
+[Guide 1](https://www.digitalocean.com/community/tutorials/how-to-enable-remote-desktop-protocol-using-xrdp-on-ubuntu-22-04)
+[Guide 2](https://phoenixnap.com/kb/ubuntu-remote-desktop-from-windows)
+
+To remote into each jetson nano from a laptop, it is recommended to use xrdp and Windows Remote Desktop. Make sure to use a grapical desktop interface like xfce4 (included in first guide).
+An optional additional step is to disable the "thinclient_drives" mounted drive. This is done by including `EnableFuseMount=false` in the `/etc/xrdp/sesman.ini` file.
+
 ----------------------------------------------------------------------
 
 Beam distance is 62 inches
